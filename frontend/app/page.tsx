@@ -6,8 +6,8 @@ import { OutputSection } from "@/components/output-section"
 import { useToast } from "@/hooks/use-toast"
 
 // Cloud Functions API エンドポイント
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://generate-6mcknbzbpq-an.a.run.app"
-const LINE_SEND_URL = process.env.NEXT_PUBLIC_LINE_SEND_URL || "https://linesend-6mcknbzbpq-an.a.run.app"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://asia-northeast1-cooking-class-system.cloudfunctions.net/generate"
+const LINE_SEND_URL = process.env.NEXT_PUBLIC_LINE_SEND_URL || "https://asia-northeast1-cooking-class-system.cloudfunctions.net/lineSend"
 
 export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false)
