@@ -37,23 +37,26 @@ export async function POST(request: NextRequest) {
     const bucket = storage.bucket(BUCKET_NAME)
     const file = bucket.file(filePath)
 
-    // HTMLをアップロード（公開URLとして使用）
+    // HTMLをアップロード
     await file.save(html, {
       contentType: "text/html; charset=utf-8",
       metadata: {
         cacheControl: "public, max-age=3600",
         contentDisposition: "inline",
       },
-      // Uniform bucket-level accessが有効なため、ファイルレベルの公開設定は不要
-      predefinedAcl: 'publicRead',
     })
 
-    // 公開URL
-    const publicUrl = `https://storage.googleapis.com/${BUCKET_NAME}/${filePath}`
+    // 署名付きURL（Signed URL）を生成
+    // 組織ポリシーでpublic accessが制限されているため、署名付きURLを使用
+    const [signedUrl] = await file.getSignedUrl({
+      version: 'v4',
+      action: 'read',
+      expires: Date.now() + 365 * 24 * 60 * 60 * 1000, // 1年間有効
+    })
 
     return NextResponse.json({
       success: true,
-      url: publicUrl,
+      url: signedUrl,
       fileName: fileName,
       filePath: filePath,
     })
