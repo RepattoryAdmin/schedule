@@ -3,16 +3,16 @@
 
 FROM node:20-alpine AS builder
 
-# pnpmを有効化
-RUN corepack enable && corepack prepare pnpm@latest --activate
+# pnpm 9.xを固定バージョンで有効化（ロックファイル互換性のため）
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
 
 WORKDIR /app
 
 # frontendフォルダから依存関係ファイルをコピー
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
 
-# 依存関係をインストール
-RUN pnpm install --frozen-lockfile
+# 依存関係をインストール（互換性問題対応のため--forceを使用）
+RUN pnpm install --force
 
 # frontendフォルダのソースコードをコピー
 COPY frontend/ ./
