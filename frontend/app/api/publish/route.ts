@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     const [signedUrl] = await file.getSignedUrl({
       version: 'v4',
       action: 'read',
-      expires: Date.now() + 365 * 24 * 60 * 60 * 1000, // 1年間有効
+      expires: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7日間有効（Cloud Storageの最大期限）
     })
 
     return NextResponse.json({
