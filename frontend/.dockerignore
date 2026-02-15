@@ -1,0 +1,28 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build output
+.next
+out
+
+# Development files
+*.log
+.env*.local
+.DS_Store
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+
+# Test
+coverage
+__tests__
+
+# Misc
+README.md
+*.md

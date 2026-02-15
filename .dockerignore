@@ -1,0 +1,39 @@
+# Git
+.git
+.gitignore
+
+# Node.js
+node_modules
+**/node_modules
+
+# Next.js ビルド成果物（ローカル）
+frontend/.next
+frontend/out
+
+# 環境変数（ローカル用）
+**/.env*.local
+
+# Firebase/Functions（フロントエンドビルドには不要）
+functions/
+firebase.json
+.firebaserc
+
+# ドキュメント
+*.md
+README*
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# テスト
+**/__tests__
+**/*.test.*
+**/*.spec.*
+
+# その他
+public/
