@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
+import { Spinner } from "@/components/ui/spinner"
 import { Check, Copy, ExternalLink, Globe, Mail, MessageCircle, Send } from "lucide-react"
 
 interface OutputSectionProps {
@@ -13,6 +14,7 @@ interface OutputSectionProps {
   emailSubject: string
   emailBody: string
   publishedUrl?: string
+  lineSent?: boolean
   onPublish: () => void
   onSendLine: () => void
   onSendEmail: () => void
@@ -27,6 +29,7 @@ export function OutputSection({
   emailSubject,
   emailBody,
   publishedUrl,
+  lineSent,
   onPublish,
   onSendLine,
   onSendEmail,
@@ -36,15 +39,19 @@ export function OutputSection({
 }: OutputSectionProps) {
   const [copiedLine, setCopiedLine] = useState(false)
   const [copiedEmail, setCopiedEmail] = useState(false)
+  const [copiedUrl, setCopiedUrl] = useState(false)
 
-  const copyToClipboard = async (text: string, type: "line" | "email") => {
+  const copyToClipboard = async (text: string, type: "line" | "email" | "url") => {
     await navigator.clipboard.writeText(text)
     if (type === "line") {
       setCopiedLine(true)
       setTimeout(() => setCopiedLine(false), 2000)
-    } else {
+    } else if (type === "email") {
       setCopiedEmail(true)
       setTimeout(() => setCopiedEmail(false), 2000)
+    } else if (type === "url") {
+      setCopiedUrl(true)
+      setTimeout(() => setCopiedUrl(false), 2000)
     }
   }
 
@@ -96,17 +103,22 @@ export function OutputSection({
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 onClick={onPublish}
-                disabled={isPublishing}
-                className="flex-1"
+                disabled={isPublishing || !!publishedUrl}
+                className={publishedUrl ? "flex-1 bg-green-600 hover:bg-green-700" : "flex-1"}
               >
                 {isPublishing ? (
                   <>
-                    <span className="animate-spin mr-2">🌀</span>
+                    <Spinner className="mr-2" />
                     公開中...
+                  </>
+                ) : publishedUrl ? (
+                  <>
+                    <Check className="mr-2 h-4 w-4" />
+                    公開済み
                   </>
                 ) : (
                   <>
-                    <ExternalLink className="mr-2 h-4 w-4" />
+                    <Globe className="mr-2 h-4 w-4" />
                     公開する
                   </>
                 )}
@@ -114,19 +126,54 @@ export function OutputSection({
             </div>
 
             {publishedUrl && (
-              <div className="flex items-center gap-2 p-3 bg-accent/20 rounded-lg">
-                <Badge variant="outline" className="bg-accent/30 text-accent-foreground border-accent">
-                  公開済
-                </Badge>
-                <a
-                  href={publishedUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary hover:underline truncate"
-                >
-                  {publishedUrl}
-                </a>
-              </div>
+              <Card className="bg-green-50 border-green-200">
+                <CardContent className="pt-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="default" className="bg-green-600">
+                      <Check className="mr-1 h-3 w-3" />
+                      公開完了
+                    </Badge>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-gray-700">🔗 公開URL:</p>
+                    <div className="bg-white p-3 rounded-md border break-all text-sm font-mono">
+                      {publishedUrl}
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyToClipboard(publishedUrl, "url")}
+                      className="flex-1"
+                    >
+                      {copiedUrl ? (
+                        <>
+                          <Check className="mr-2 h-4 w-4 text-green-600" />
+                          コピーしました
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="mr-2 h-4 w-4" />
+                          URLをコピー
+                        </>
+                      )}
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open(publishedUrl, '_blank')}
+                      className="flex-1"
+                    >
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      新しいタブで開く
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </TabsContent>
 
@@ -163,13 +210,18 @@ export function OutputSection({
               </Button>
               <Button
                 onClick={onSendLine}
-                disabled={isSendingLine}
-                className="flex-1 bg-[#06C755] hover:bg-[#05b04c] text-white"
+                disabled={isSendingLine || lineSent}
+                className={`flex-1 ${lineSent ? 'bg-green-600 hover:bg-green-700' : 'bg-[#06C755] hover:bg-[#05b04c]'} text-white`}
               >
                 {isSendingLine ? (
                   <>
-                    <span className="animate-spin mr-2">🌀</span>
+                    <Spinner className="mr-2" />
                     送信中...
+                  </>
+                ) : lineSent ? (
+                  <>
+                    <Check className="mr-2 h-4 w-4" />
+                    送信済み
                   </>
                 ) : (
                   <>

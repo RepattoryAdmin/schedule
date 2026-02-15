@@ -6,7 +6,7 @@ const storage = new Storage({
   projectId: process.env.GCLOUD_PROJECT || "cooking-class-system",
 })
 
-const BUCKET_NAME = "cooking-class-system.appspot.com"
+const BUCKET_NAME = "cooking-class-lessons"
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,10 +59,30 @@ export async function POST(request: NextRequest) {
       filePath: filePath,
     })
   } catch (error) {
-    console.error("Publish API error:", error)
+    // 詳細なエラーログを出力
+    console.error("Publish API error:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      code: (error as any)?.code,
+      errors: (error as any)?.errors,
+      type: error instanceof Error ? error.constructor.name : typeof error,
+    })
+
+    // エラーの種類に応じたメッセージ
+    let errorMessage = "公開に失敗しました"
+    const errorCode = (error as any)?.code
+
+    if (errorCode === 401 || errorCode === 403) {
+      errorMessage = "認証エラー: ストレージへのアクセス権限がありません"
+    } else if (errorCode === 404) {
+      errorMessage = "バケットが見つかりません"
+    } else if (error instanceof Error && error.message.includes("bucket")) {
+      errorMessage = "ストレージバケットへのアクセスに失敗しました"
+    }
+
     return NextResponse.json(
       {
-        error: "公開に失敗しました",
+        error: errorMessage,
         details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }

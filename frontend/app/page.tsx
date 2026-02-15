@@ -21,6 +21,7 @@ export default function Home() {
     emailBody: string
   } | null>(null)
   const [publishedUrl, setPublishedUrl] = useState<string>()
+  const [lineSent, setLineSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentFormData, setCurrentFormData] = useState<LessonFormData | null>(null)
   const { toast } = useToast()
@@ -71,6 +72,7 @@ export default function Home() {
         emailBody: result.emailBody || "",
       })
       setPublishedUrl(undefined)
+      setLineSent(false)
 
       toast({
         title: "生成完了",
@@ -156,6 +158,8 @@ export default function Home() {
         throw new Error(errorData.error || `LINE送信エラー: ${response.status}`)
       }
 
+      setLineSent(true)
+      
       toast({
         title: "送信完了",
         description: "LINE告知を送信しました",
@@ -232,6 +236,7 @@ export default function Home() {
                 emailSubject={generatedContent.emailSubject}
                 emailBody={generatedContent.emailBody}
                 publishedUrl={publishedUrl}
+                lineSent={lineSent}
                 onPublish={handlePublish}
                 onSendLine={handleSendLine}
                 onSendEmail={handleSendEmail}
