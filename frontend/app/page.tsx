@@ -5,9 +5,9 @@ import { LessonForm, type LessonFormData } from "@/components/lesson-form"
 import { OutputSection } from "@/components/output-section"
 import { useToast } from "@/hooks/use-toast"
 
-// Cloud Functions API エンドポイント（第2世代）
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://generate-6mcknbzbpq-an.a.run.app"
-const LINE_SEND_URL = process.env.NEXT_PUBLIC_LINE_SEND_URL || "https://linesend-6mcknbzbpq-an.a.run.app"
+// Next.js API Routes（サーバーサイドでCloud Functionsを呼び出す）
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "/api/generate"
+const LINE_SEND_URL = process.env.NEXT_PUBLIC_LINE_SEND_URL || "/api/line-send"
 
 export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false)
