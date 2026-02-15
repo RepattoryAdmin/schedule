@@ -1,6 +1,13 @@
 import {onRequest} from "firebase-functions/v2/https";
 import {setGlobalOptions} from "firebase-functions/v2";
 import {VertexAI} from "@google-cloud/vertexai";
+import * as admin from "firebase-admin";
+import {getStorage} from "firebase-admin/storage";
+
+// Firebase Admin 初期化
+if (!admin.apps.length) {
+  admin.initializeApp();
+}
 
 setGlobalOptions({maxInstances: 10, region: "asia-northeast1"});
 
@@ -350,3 +357,71 @@ export const lineSend = onRequest(
       res.status(500).json({error: "LINE送信に失敗しました"});
     }
   });
+
+// HTML公開 API（Cloud Storage に保存）
+export const publishLesson = onRequest(async (req, res) => {
+  // CORS対応
+  res.set("Access-Control-Allow-Origin", "*");
+  if (req.method === "OPTIONS") {
+    res.set("Access-Control-Allow-Methods", "POST");
+    res.set("Access-Control-Allow-Headers", "Content-Type");
+    res.status(204).send("");
+    return;
+  }
+
+  try {
+    const {html, date} = req.body;
+
+    // バリデーション
+    if (!html || !date) {
+      res.status(400).json({
+        error: "HTMLと日付が必要です",
+      });
+      return;
+    }
+
+    // 日付フォーマットの検証（YYYY-MM-DD）
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    if (!datePattern.test(date)) {
+      res.status(400).json({
+        error: "日付は YYYY-MM-DD 形式で指定してください",
+      });
+      return;
+    }
+
+    // ファイル名生成（例: lesson-2025-02-02.html）
+    const fileName = `lesson-${date}.html`;
+    const filePath = `lessons/${fileName}`;
+
+    // Cloud Storage にアップロード
+    const bucket = getStorage().bucket();
+    const file = bucket.file(filePath);
+
+    await file.save(html, {
+      contentType: "text/html; charset=utf-8",
+      metadata: {
+        cacheControl: "public, max-age=3600",
+        contentDisposition: "inline",
+      },
+    });
+
+    // ファイルを公開設定
+    await file.makePublic();
+
+    // 公開URL
+    const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filePath}`;
+
+    res.json({
+      success: true,
+      url: publicUrl,
+      fileName: fileName,
+      filePath: filePath,
+    });
+  } catch (error) {
+    console.error("Publish error:", error);
+    res.status(500).json({
+      error: "公開に失敗しました",
+      details: error instanceof Error ? error.message : String(error),
+    });
+  }
+});

@@ -22,11 +22,13 @@ export default function Home() {
   } | null>(null)
   const [publishedUrl, setPublishedUrl] = useState<string>()
   const [error, setError] = useState<string | null>(null)
+  const [currentFormData, setCurrentFormData] = useState<LessonFormData | null>(null)
   const { toast } = useToast()
 
   const handleGenerate = async (data: LessonFormData) => {
     setIsGenerating(true)
     setError(null)
+    setCurrentFormData(data) // 日付情報を保持
 
     try {
       // 日時をフォーマット
@@ -88,19 +90,39 @@ export default function Home() {
   }
 
   const handlePublish = async () => {
-    if (!generatedContent?.htmlContent) return
+    if (!generatedContent?.htmlContent || !currentFormData?.date) {
+      toast({
+        title: "エラー",
+        description: "公開するコンテンツまたは日付が見つかりません",
+        variant: "destructive",
+      })
+      return
+    }
 
     setIsPublishing(true)
     try {
-      // TODO: Cloud Storage → Firebase Hosting への公開フローを実装
-      // 今は仮のURLを返す
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      const timestamp = Date.now()
-      setPublishedUrl(`https://cooking-class-system.web.app/lessons/${timestamp}`)
+      const response = await fetch("/api/publish", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          html: generatedContent.htmlContent,
+          date: currentFormData.date, // YYYY-MM-DD 形式
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "公開に失敗しました")
+      }
+
+      const result = await response.json()
+      setPublishedUrl(result.url)
 
       toast({
         title: "公開完了",
-        description: "LPを公開しました",
+        description: `LPを公開しました: ${result.fileName}`,
       })
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "公開に失敗しました"
