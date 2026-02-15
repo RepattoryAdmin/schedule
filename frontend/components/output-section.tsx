@@ -216,23 +216,6 @@ export function OutputSection({
                   </>
                 )}
               </Button>
-              <Button
-                onClick={onSendEmail}
-                disabled={isSendingEmail}
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                {isSendingEmail ? (
-                  <>
-                    <span className="animate-spin mr-2">🌀</span>
-                    送信中...
-                  </>
-                ) : (
-                  <>
-                    <Send className="mr-2 h-4 w-4" />
-                    送信する
-                  </>
-                )}
-              </Button>
             </div>
           </TabsContent>
         </Tabs>
