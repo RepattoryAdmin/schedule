@@ -37,17 +37,16 @@ export async function POST(request: NextRequest) {
     const bucket = storage.bucket(BUCKET_NAME)
     const file = bucket.file(filePath)
 
-    // HTMLをアップロード
+    // HTMLをアップロード（公開URLとして使用）
     await file.save(html, {
       contentType: "text/html; charset=utf-8",
       metadata: {
         cacheControl: "public, max-age=3600",
         contentDisposition: "inline",
       },
+      // Uniform bucket-level accessが有効なため、ファイルレベルの公開設定は不要
+      predefinedAcl: 'publicRead',
     })
-
-    // ファイルを公開設定
-    await file.makePublic()
 
     // 公開URL
     const publicUrl = `https://storage.googleapis.com/${BUCKET_NAME}/${filePath}`
