@@ -83,8 +83,8 @@ export function OutputSection({
                 </div>
                 <span className="text-xs text-muted-foreground ml-2">プレビュー</span>
               </div>
-              <div className="p-4 min-h-[300px] max-h-[500px] overflow-auto">
-                <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+              <div className="p-4 min-h-[300px] max-h-[500px] overflow-auto w-full">
+                <div className="w-full max-w-full" dangerouslySetInnerHTML={{ __html: htmlContent }} />
               </div>
             </div>
 

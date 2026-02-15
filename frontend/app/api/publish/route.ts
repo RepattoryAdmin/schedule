@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
+import { Storage } from "@google-cloud/storage"
 
-const PUBLISH_API_URL =
-  process.env.NEXT_PUBLIC_PUBLISH_URL ||
-  "https://asia-northeast1-cooking-class-system.cloudfunctions.net/publishLesson"
+// Cloud Storage初期化
+const storage = new Storage({
+  projectId: process.env.GCLOUD_PROJECT || "cooking-class-system",
+})
+
+const BUCKET_NAME = "cooking-class-system.appspot.com"
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,22 +29,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Cloud Functions の publishLesson を呼び出し
-    const response = await fetch(PUBLISH_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    // ファイル名生成（例: lesson-2025-02-02.html）
+    const fileName = `lesson-${date}.html`
+    const filePath = `lessons/${fileName}`
+
+    // Cloud Storage バケット取得
+    const bucket = storage.bucket(BUCKET_NAME)
+    const file = bucket.file(filePath)
+
+    // HTMLをアップロード
+    await file.save(html, {
+      contentType: "text/html; charset=utf-8",
+      metadata: {
+        cacheControl: "public, max-age=3600",
+        contentDisposition: "inline",
       },
-      body: JSON.stringify({ html, date }),
     })
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.error || `公開エラー: ${response.status}`)
-    }
+    // ファイルを公開設定
+    await file.makePublic()
 
-    const result = await response.json()
-    return NextResponse.json(result)
+    // 公開URL
+    const publicUrl = `https://storage.googleapis.com/${BUCKET_NAME}/${filePath}`
+
+    return NextResponse.json({
+      success: true,
+      url: publicUrl,
+      fileName: fileName,
+      filePath: filePath,
+    })
   } catch (error) {
     console.error("Publish API error:", error)
     return NextResponse.json(
